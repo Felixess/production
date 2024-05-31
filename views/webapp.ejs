@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>GitLab Issues</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <h1>GitLab Issues</h1>
+    <ul id="issuesList">
+        <% if(Array.isArray(issues)) { %>
+            <% issues.forEach(function(issue) { %>
+                <li>Issue #<%= issue.id %>: <%= issue.title %> - <%= issue.state %></li>
+            <% }); %>
+        <% } else { %>
+            <p>No issues found or `issues` is not an array.</p>
+        <% } %>
+    </ul>
+    <script>
+        const socket = new WebSocket('wss://cscloud7-174.lnu.se/webapp'); // Use the actual WebSocket server URL
+    
+        socket.onmessage = function(event) {
+            console.log(event.data); // Log the raw data received from the server
+    
+            try {
+                const data = JSON.parse(event.data);
+                if (data && data.event === 'issue_event') {
+                    const issue = data.issue;
+                    const issueElement = document.createElement('li');
+                    issueElement.textContent = `Issue #${issue.id}: ${issue.title} - ${issue.state}`;
+                    document.getElementById('issuesList').appendChild(issueElement);
+                    window.location.reload()
+                }
+                if (data && data.event === 'refresh_page') {
+                    window.location.reload(); // This refreshes the page
+                }
+            } catch (error) {
+                console.error("Error parsing JSON:", error);
+            }
+        };
+    </script>
+    
+</body>
+</html>
